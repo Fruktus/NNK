@@ -9,7 +9,7 @@ In other words, they are specific to project and are not meant to be freely reus
 ## Core modules:
 - CoRe - made up of smaller modules:
 	loads other modules, contains knowledge and params database, acts as intermediary between other core modules
-- Ava - produces visual part, stickers, maybe live avarar, we'll see
+- Ava - produces visual part, stickers, maybe live avatar, we'll see
 - Comm - multiple routes of communication, telegram, messenger, mail, possibly sms
 - Nlang - processing, understanding and generating natural language, calling relevant utils
 - Supervisor - a script checking if everything is working, runs periodically

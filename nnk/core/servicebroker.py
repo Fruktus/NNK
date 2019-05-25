@@ -1,20 +1,40 @@
 # Service Broker
 import multiprocessing as mp
+from . import configurator
+from . import loader
 
 class ServiceBroker():
 	def __init__(self):  # maybe pass as a param location of services?
-		self._serviceRegistry = {}
-		self._handlerRegistry = {}
-		self._messageQueue = mp.Queue()  # docs claim its threadsafe
+		self._serviceRegistry = {}  # name of service -> dict: command name -> string? + something like empty -> queue
+		self._handlerRegistry = {}  # name -> queue?
+		self._messageQueue = mp.Queue()  # read by servicebroker, written by services # docs claim its threadsafe
+		# TODO will most likely need queue for every service
 		self._handlerRegistry['useroutput'] = [self._userOutputHandler]
+		# service types:
+		# user input
+		# user output
+		# service loader
+		# config
 
 
 	def start(self):
 		# threads for handling messages?
 		# like spawn few threads to handle requests from different services
+		# can pass names to process
+		self.process = mp.Process(target=self._start)  # TODO should or shouldn't be daemon?
+		# self.process.daemon = True  # snippet
+		self.process.start()
+
+	def _start(self):
+		# load and instantiate all other core components
 		while True:
-			# handle some stuff
-			return
+			# handle incoming messages
+			msg = self._messageQueue.get()
+			raise Exception('not implemented')
+
+	def stop(self):
+		self.process.terminate()
+		self.process.join()
 
 	def _userOutputHandler(self, output: str):  # default handler
 		print(output)
@@ -27,7 +47,7 @@ class ServiceBroker():
 		try:
 			return self._handlerRegistry[name][-1]
 		except Exception:
-			return None  # TODO log error
+			raise Exception('not implemented')  # TODO log error
 			# for the basic things it should never find empty key
 			# unless the name itself does not exist
 	
@@ -35,5 +55,11 @@ class ServiceBroker():
 		try:
 			self._handlerRegistry[name].append(handler)
 		except Exception:
-			return None  # TODO log error
+			raise Exception('not implemented')  # TODO log error
 			# errors when wrong name
+
+	def _getService(self, name: str):
+		raise Exception('not implemented')
+	
+	def _addService(self, name: str, service):
+		raise Exception('not implemented')
