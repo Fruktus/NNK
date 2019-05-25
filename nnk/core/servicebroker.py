@@ -33,6 +33,7 @@ class ServiceBroker():
 			msg = self._messageQueue.get()
 			# TODO process message
 			# raise Exception('not implemented')
+			raise Exception('not implemented')
 
 	def stop(self):
 		self.process.terminate()
