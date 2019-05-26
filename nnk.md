@@ -84,6 +84,24 @@ add custom handler for that
 now the services (module+wrapper) will be called services and the functions (generic call handlers) will be called handlers 
 => service registry, handler registry
 
+---
+
+user command processor should possibly remember te context as in if user wants to work with specific service,
+like taskmanager, creates the task (using the service name) and then while continuing uses more of taskmgr commands,
+it should be redirected to it even though no name was suppliedthis time
+
+---
+
+important note:
+all modules will use queues for communication
+but i have no way to prevent other processes from reading other processes' queues
+this would remove data for them and may lead to problems.
+convention:
+if queue belongs to other object, only use put
+or
+use some custom object or queue implementation
+which would work as intermediary
+
 ## Code drafts
 All of the modules should be in separate files.
 Most likely will run in their own processes.
