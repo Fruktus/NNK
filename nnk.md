@@ -4,7 +4,7 @@ Regular modules consists of generic code (library) and wrapper. Library provides
 in other projects, while wrapper is closer to application using that library, which also connects to the NNK (specifically broker) through api.
 
 Core modules differ because they won't neccessarily have a library module and are more focused on providing specific functionality.
-In other words, they are specific to project and are not meant to be freely reusable by themself.
+In other words, they are specific to project and are not meant to be freely reusable by themselves.
 
 ## Core modules:
 - CoRe - made up of smaller modules:
