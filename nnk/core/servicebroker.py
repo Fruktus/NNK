@@ -19,7 +19,7 @@ class ServiceBroker:
 		self._messageQueue = mp.Queue()  # read by servicebroker, written by services # docs claim its threadsafe
 		# TODO will most likely need queue for every service
 		self._handlerRegistry['useroutput'] = [self._user_output_handler]
-		# self.process = mp.Process(target=self._start)  # TODO should or shouldn't be daemon?
+		# self.process = mp.Process(target=self._start)  # TODO should or shouldn't be daemon?/ should.
 		# self.process.daemon = True  # snippet
 
 		# service types:
@@ -28,7 +28,7 @@ class ServiceBroker:
 		# service loader?
 		# config
 
-	@threaded(name='broker', daemon=True)
+	@threaded(name='broker', daemon=True)  # TODO most likely for removal, need to save the thread reference
 	def start(self):
 		# threads for handling messages?
 		# like spawn few threads to handle requests from different services

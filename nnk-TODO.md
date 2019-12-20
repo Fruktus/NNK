@@ -1,5 +1,4 @@
 # TODO's
-figure out file structure of models
 decide how the message class should look like
 
 Note:
@@ -21,6 +20,9 @@ options:
 configuration - either through loader (as parameter) or through broker (as request)
 
 figure out how to pass loader config and broker between themselves as to not create circular dependencies
---> solved, broker is independent from other core, other core requires loader at creation
+--> solved, broker is independent from other core, other core requires broker at creation
 
 use abstract classes to build modules
+
+
+requirements per module?

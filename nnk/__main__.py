@@ -11,7 +11,8 @@ from nnk.core.configurator import Configurator
 def main():
     logging.basicConfig(level=logging.DEBUG, format='{asctime} {name:<20} {levelname:10s} {message}', style='{')
     # https://pypi.org/project/multiprocessing-logging/
-    # above might be useful but it didnt work on windows, maybe on linux it will (mp's limitations
+    # above might be useful but it didnt work on windows, maybe on linux it will (mp's limitations)
+    # followup: after dockerizing worked nicely
 
     sb = ServiceBroker()
     cf = Configurator(sb)
@@ -31,6 +32,7 @@ def main():
         cf.stop()
         ld.stop()
         sb.stop()
+
 
 if __name__ == '__main__':
     main()

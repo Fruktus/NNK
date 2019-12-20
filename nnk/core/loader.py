@@ -23,7 +23,7 @@ class Loader:
     @threaded(name='loader', daemon=True)
     def start(self):
         lg.info('starting')
-        self._load_services()  # dbg only
+        self._load_services()  # dbg only(?)
         while True:
             msg = self._messageQueue.get()
             # TODO fill rest
@@ -57,7 +57,7 @@ class Loader:
         # run add_service on broker OR wait for the broker to ask for it or smth
         modules = [f for f in listdir(join(abspath(dirname(__file__)), '..', 'modules'))
                    if isdir(join(abspath(dirname(__file__)), '..', 'modules', f))]
-        modules.remove('templatemodule')  # temporary(?) fix. templatemodule shouldnt be left in that foler later on
+        modules.remove('templatemodule')  # FIXME temporary fix. templatemodule will be moved elsewhere later on
 
         loaded = 0
         for m in modules:
