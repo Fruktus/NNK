@@ -2,6 +2,7 @@ import logging
 import multiprocessing as mp
 
 from nnk.messages import CommandMessage, ConfigMessage
+from nnk.constants import Services
 from .telegram import TelegramModule
 
 lg = logging.getLogger('modules.telegram')
@@ -15,7 +16,7 @@ class TelegramService:
 
     def start(self):
         # if needed, spawn child threads
-        cfg = ConfigMessage(target='config', source=self._id)
+        cfg = ConfigMessage(target=Services.CONFIG, source=self._id)
         self._brokerqueue.put(cfg)
         lg.debug('requesting config')
 
@@ -36,37 +37,41 @@ class TelegramService:
 
     def stop(self):
         # so that the module can save its config and exit gracefully
-        # TODO: stop telegram
-        # raise NotImplementedError
+        # TODO: stop telegram if running, stop all child threads if needed
         pass
 
     def _load_config(self, config: dict):
-        # the dict is the response from configurator, may be empty!
+        # the config is the response from configurator, may be empty
         if not config:
             lg.warning('storing initial config and exiting')
-            msg = ConfigMessage(target='config', source=self._id, config={'token': ''})
-            self._brokerqueue.put(msg)
+            self._store_config()
             self.stop()
-        # TODO: telegram requires token to work, should exit if not supplied
-        # i can use this method to process reply with config <-- this one looks best
-        # needs to retrieve the token from config
-        # raise NotImplementedError
-        self.token = config['token']
+        elif config['token'] == '':
+            lg.warning('missing token, exiting')
+            self.stop()
+
+        # do not store the token itself, not necessary
         # start telegram with token
-        self.module = TelegramModule(self.token)
+        self._module = TelegramModule(config['token'])
         self._start_module()
 
     def _start_module(self):
-        # FIXME tmp only
+        # FIXME tmp only, handlers should be declared elsewhere
+        from telegram.ext import MessageHandler, Filters
+
         def echo(update, context):
             context.bot.send_message(chat_id=update.message.chat_id, text=update.message.text)
 
-        from telegram.ext import MessageHandler, Filters
         echo_handler = MessageHandler(Filters.text, echo)
-        self.module.add_handler(echo_handler)
-        self.module.start_telegram()
+        self._module.add_handler(echo_handler)
+        self._module.start_telegram()
 
     def _store_config(self):
         # send info to broker to pass through handler to configurator to add config
-        # can pass something like token=fillme
-        raise NotImplementedError
+        msg = ConfigMessage(target=Services.CONFIG, source=self._id, config={'token': ''})
+        self._brokerqueue.put(msg)
+
+    # draft, will be called from handlers
+    # def _send_message_from_telegram(self, args):
+    #     msg = CommandMessage(target=Services.USER_TEXT_INPUT, source=self._id, args=args)
+    #     self._brokerqueue.put(msg)

@@ -22,11 +22,7 @@ class ServiceBroker:
 		# self.process = mp.Process(target=self._start)  # TODO should or shouldn't be daemon?/ should.
 		# self.process.daemon = True  # snippet
 
-		# service types:
-		# user input
-		# user output
-		# service loader?
-		# config
+		# service types -> moved to constants:
 
 	@threaded(name='broker', daemon=True)  # TODO most likely for removal, need to save the thread reference
 	def start(self):

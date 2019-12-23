@@ -5,6 +5,7 @@ from os.path import isfile
 
 from nnk.core.servicebroker import ServiceBroker
 from nnk.messages import CommandMessage, ConfigMessage
+from nnk.constants import Services
 from nnk.utilities import threaded
 
 lg = logging.getLogger('core.configurator')
@@ -14,7 +15,7 @@ class Configurator:
     def __init__(self, broker: ServiceBroker):
         self._messageQueue = mp.Queue()
         self._sb = broker
-        self._sb.add_handler('config', self._messageQueue)
+        self._sb.add_handler(Services.CONFIG, self._messageQueue)
         self._config = cp.ConfigParser()
 
     def get_queue(self) -> mp.Queue:
@@ -109,7 +110,7 @@ class Configurator:
                 self.set_key(source, k, v)
 
 
-"""
+""" Usage snippets
 >>> config = configparser.ConfigParser()
 >>> config.sections()
 []
