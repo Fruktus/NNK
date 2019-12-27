@@ -1,5 +1,6 @@
 import logging
 import multiprocessing as mp
+from telegram import Bot
 
 from nnk.messages import CommandMessage, ConfigMessage
 from nnk.constants import Services
@@ -21,11 +22,13 @@ class TelegramService:
         lg.debug('requesting config')
 
         while True:
+            # TODO register handler with broker
             message = self._ownqueue.get()
             if isinstance(message, ConfigMessage):
                 self._load_config(message.config)
             if isinstance(message, CommandMessage):
-                pass
+                if message.target == Services.USER_TEXT_OUTPUT:
+                    self._send_message(message.args)  # TODO possibly refactor
                 # do some processing using the object
 
         # for testing purposes
@@ -46,12 +49,18 @@ class TelegramService:
             lg.warning('storing initial config and exiting')
             self._store_config()
             self.stop()
+            return
         elif config['token'] == '':
             lg.warning('missing token, exiting')
             self.stop()
+            return
+        if config['chat_id'] == '@channelusername':
+            lg.warning('missing chat id, exiting')
+            self.stop()
+            return
 
-        # do not store the token itself, not necessary
         # start telegram with token
+        self._chat_id = config['chat_id']
         self._module = TelegramModule(config['token'])
         self._start_module()
 
@@ -60,16 +69,22 @@ class TelegramService:
         from telegram.ext import MessageHandler, Filters
 
         def echo(update, context):
+            print(update.message.chat_id)
             context.bot.send_message(chat_id=update.message.chat_id, text=update.message.text)
 
         echo_handler = MessageHandler(Filters.text, echo)
         self._module.add_handler(echo_handler)
         self._module.start_telegram()
+        # updater.idle() start polling is nonblocking so this might come in handy
 
     def _store_config(self):
         # send info to broker to pass through handler to configurator to add config
-        msg = ConfigMessage(target=Services.CONFIG, source=self._id, config={'token': ''})
+        msg = ConfigMessage(target=Services.CONFIG, source=self._id, config={'token': '', 'chat_id': '@channelusername'})
         self._brokerqueue.put(msg)
+
+    # snippet, for later use in processing messages
+    def _send_message(self, message: str):
+        self._module.send_message(self._chat_id, message)
 
     # draft, will be called from handlers
     # def _send_message_from_telegram(self, args):

@@ -43,3 +43,6 @@ class TelegramModule:
 
     def add_handler(self, handler):
         self.dispatcher.add_handler(handler)
+
+    def send_message(self, chat_id, message):
+        self.updater.bot.send_message(chat_id, message)
