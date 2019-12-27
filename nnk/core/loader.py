@@ -70,6 +70,7 @@ class Loader:
                 process.start()
 
                 self._sb.add_service(m, instance_queue)
+                # TODO replace state with string constants
                 self._moduleRegistry[m] = {'process': process, 'state': 'loaded', 'queue': instance_queue}
 
                 lg.debug('started service: %s', m)

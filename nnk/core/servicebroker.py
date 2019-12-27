@@ -13,6 +13,8 @@ lg = logging.getLogger('core.broker')
 class ServiceBroker:
 	def __init__(self):  # maybe pass as a param location of services?
 		# TODO figure out how to store the queues
+		# TODO implement command handling (adding, getting, removing, etc)
+		self._commandsRegistry = {}  # name of service -> array of accepted keywords
 		self._serviceRegistry = {}  # name of service -> queue
 		self._handlerRegistry = {}  # name -> queue
 		self._processorRegistry = {}  # handlername -> array of intermediate layers, should be interchangable
