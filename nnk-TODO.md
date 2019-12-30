@@ -26,3 +26,10 @@ use abstract classes to build modules
 
 
 requirements per module?
+
+create supervisor which would initialize the core. supervisor would also have a separate thread
+(see here: https://stackoverflow.com/questions/39089776/python-read-named-pipe)
+which would wait blocked for other process to write to pipe, this would be used by perhaps cron-scheduled
+job which would check the nnk's state and restart whole server if necessary
+TODO: related to above, create constants for modules status like normal, warning, exited etc
+(active-okay, inactive-normal exit, dead-exception caused exit, ...?)

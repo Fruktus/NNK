@@ -86,9 +86,9 @@ now the services (module+wrapper) will be called services and the functions (gen
 
 ---
 
-user command processor should possibly remember te context as in if user wants to work with specific service,
+user command processor should possibly remember the context as in if user wants to work with specific service,
 like taskmanager, creates the task (using the service name) and then while continuing uses more of taskmgr commands,
-it should be redirected to it even though no name was suppliedthis time
+it should be redirected to it even though no name was supplied this time
 
 ---
 
@@ -105,7 +105,7 @@ which would work as intermediary
 ## Code drafts
 All of the modules should be in separate files.
 Most likely will run in their own processes.
-Program will start in main which will create the broker, which will load everything else.
+Program will start in main which will create the broker, who will load everything else.
 
 ```python
 # Service Broker

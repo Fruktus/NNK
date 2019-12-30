@@ -18,10 +18,12 @@ class ServiceBroker:
 		self._serviceRegistry = {}  # name of service -> queue
 		self._handlerRegistry = {}  # name -> queue
 		self._processorRegistry = {}  # handlername -> array of intermediate layers, should be interchangable
+
 		self._messageQueue = mp.Queue()  # read by servicebroker, written by services # docs claim its threadsafe
 		# TODO will most likely need queue for every service
 		self._handlerRegistry['useroutput'] = [self._user_output_handler]
-		# self.process = mp.Process(target=self._start)  # TODO should or shouldn't be daemon?/ should.
+		# self.process = mp.Process(target=self._start)  # TODO should or shouldn't be daemon?
+		#  broker possibly shouldn't to wait for other core threads
 		# self.process.daemon = True  # snippet
 
 		# service types -> moved to constants:
@@ -34,15 +36,13 @@ class ServiceBroker:
 		# self.process.start()  # runs _start in separate process
 
 		lg.info('starting')
-		# load and instantiate all other core components
-		self._load_services()
 		while True:
 			# handle incoming messages
 			msg = self._messageQueue.get()  # type: CommandMessage
 			lg.debug(msg)
-			# TODO handling should be in separate method
+			# TODO handling should be done in separate method
 			# maybe instead of service getter make serviceSend
-			# TODO check the type of message (isinstance)
+			# TODO check the type of message (isinstance) first
 			if msg.target in self._serviceRegistry:
 				self._serviceRegistry[msg.target].put(msg)
 			else:
@@ -67,23 +67,6 @@ class ServiceBroker:
 	def _user_output_handler(self, output: str):  # default handler
 		print(output)
 
-	def _load_services(self): # method for loading the services from the folder
-		# FIXME since the loader became part of the core i can assume its always present as handler and not add it here
-		# TODO decide whether i want to keep the object or not
-		pass
-		# ld = Loader()
-		# lqueue = ld.get_queue()
-		# ldr = mp.Process(target=ld.start)  # TODO should or shouldn't be daemon?
-		# ldr.start()
-		# self._add_handler('loader', lqueue)
-		#
-		# c = Configurator()
-		# cqueue = c.getQueue()
-		# cfg = mp.Process(target=c.start)  # TODO should or shouldn't be daemon?
-		# cfg.start()
-		# self._add_handler('config', cqueue)
-		# self.process.daemon = True  # snippet
-
 	def get_handler(self, name: str):
 		if name in self._handlerRegistry:
 			return self._handlerRegistry[name][-1]
@@ -96,6 +79,7 @@ class ServiceBroker:
 	# snippet for exactly that \/
 	def pipeline_func(self, data, fns):
 		"""takes data and array of functions to pipeline together"""
+		# TODO: but that assumes all methods are static(?), whereas they require sending messaging all processors
 		from functools import reduce
 		return reduce(lambda a, x: x(a), fns, data)
 	

@@ -14,7 +14,8 @@ class Loader:
     def __init__(self, broker: ServiceBroker):
         self._sb = broker
         self._messageQueue = mp.Queue()
-        self._moduleRegistry = {}
+        self._moduleRegistry = {}  # dict of process name, its state and its message queue
+        # TODO perhaps use registration message instead
         self._sb.add_handler('loader', self._messageQueue)  # should register with broker as handler
 
     def get_queue(self) -> mp.Queue:
@@ -26,7 +27,7 @@ class Loader:
         self._load_services()  # dbg only(?)
         while True:
             msg = self._messageQueue.get()
-            # TODO fill rest
+            # TODO add handling messages
 
     def stop(self):
         # kill all services
@@ -59,6 +60,8 @@ class Loader:
                    if isdir(join(abspath(dirname(__file__)), '..', 'modules', f))]
         modules.remove('templatemodule')  # FIXME temporary fix. templatemodule will be moved elsewhere later on
 
+        # TODO keep track of all modules that were present in folder, how many were loaded etc.
+        # TODO it is required for discovering dynamically added modules
         loaded = 0
         for m in modules:
             if m not in self._moduleRegistry:
@@ -69,6 +72,7 @@ class Loader:
                 process = mp.Process(target=instance.start, daemon=True)
                 process.start()
 
+                # FIXME new modules should probably register by themselves with broker
                 self._sb.add_service(m, instance_queue)
                 # TODO replace state with string constants
                 self._moduleRegistry[m] = {'process': process, 'state': 'loaded', 'queue': instance_queue}
@@ -79,7 +83,7 @@ class Loader:
             lg.info('loaded 1 service')
         else:
             lg.info('loaded ', loaded, ' services')
-    # should have looping keepalive method for loaded services
+    # should have looping keepalive method for loaded services, there is a snippet for that in nnk.md
 
         # TODO add helper method get_state which would list all loaded services or specific ones
 

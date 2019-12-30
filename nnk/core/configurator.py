@@ -17,11 +17,12 @@ class Configurator:
         self._sb = broker
         self._sb.add_handler(Services.CONFIG, self._messageQueue)
         self._config = cp.ConfigParser()
+        self._file_modified = False
 
     def get_queue(self) -> mp.Queue:
         return self._messageQueue
 
-    @threaded(name='configurator', daemon=True)
+    @threaded(name='configurator', daemon=True)  # TODO for removal, need to store the reference to thread
     def start(self):
         lg.info('starting')
         self.load_file()
@@ -34,8 +35,8 @@ class Configurator:
                 raise NotImplementedError('configurator')
 
     def stop(self):
-        # TODO add check if file modified, if not dont save
-        self.save_file()
+        if self._file_modified:
+            self.save_file()
 
         self._messageQueue.close()
         self._messageQueue.join_thread()

@@ -1,9 +1,7 @@
 import logging
 import time
 
-from nnk.core.servicebroker import ServiceBroker
-from nnk.core.loader import Loader
-from nnk.core.configurator import Configurator
+from nnk.core.supervisor import Supervisor
 
 
 # overseer function, would build all required objects, start all of them and block/wait/whtvr
@@ -14,12 +12,8 @@ def main():
     # above might be useful but it didnt work on windows, maybe on linux it will (mp's limitations)
     # followup: after dockerizing worked nicely
 
-    sb = ServiceBroker()
-    cf = Configurator(sb)
-    ld = Loader(sb)
-    sb.start()
-    cf.start()
-    ld.start()
+    sv = Supervisor()
+    sv.start()
 
     # possibly rewrite without decorator and with events to stop threads properly (so i wont get broken pipe error)
 
@@ -29,9 +23,7 @@ def main():
             time.sleep(36000)
     except KeyboardInterrupt:
         logging.info('exiting')
-        cf.stop()
-        ld.stop()
-        sb.stop()
+        sv.stop()
 
 
 if __name__ == '__main__':
