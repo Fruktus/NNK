@@ -69,11 +69,17 @@ class TelegramService:
         from telegram.ext import MessageHandler, Filters
 
         def echo(update, context):
-            print(update.message.chat_id)
+            lg.debug(update.message.chat_id)  # tmp, for removal
             context.bot.send_message(chat_id=update.message.chat_id, text=update.message.text)
+
+        # used for forwarding user input to broker
+        # TODO defined here temporarily, move someplace more fitting
+        def message_handler(update, context):
+            self._send_message_from_telegram(update.message.text.split())
 
         echo_handler = MessageHandler(Filters.text, echo)
         self._module.add_handler(echo_handler)
+        self._module.add_handler(message_handler())
         self._module.start_telegram()
         # updater.idle() start polling is nonblocking so this might come in handy
 
@@ -87,6 +93,6 @@ class TelegramService:
         self._module.send_message(self._chat_id, message)
 
     # draft, will be called from handlers
-    # def _send_message_from_telegram(self, args):
-    #     msg = CommandMessage(target=Services.USER_TEXT_INPUT, source=self._id, args=args)
-    #     self._brokerqueue.put(msg)
+    def _send_message_from_telegram(self, args):
+        msg = CommandMessage(target=Services.USER_TEXT_INPUT, source=self._id, args=args)
+        self._brokerqueue.put(msg)

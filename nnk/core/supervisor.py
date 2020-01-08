@@ -49,4 +49,4 @@ class Supervisor:
                         print(line)
         except OSError:
             # named pipes can only run on unix, but they are not critical for normal functioning
-            lg.warning('named pipes are not supported by OS')
+            lg.warning('named pipes are not supported by current OS')

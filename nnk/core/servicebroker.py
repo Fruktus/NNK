@@ -16,7 +16,7 @@ class ServiceBroker:
 		# TODO implement command handling (adding, getting, removing, etc)
 		self._commandsRegistry = {}  # name of service -> array of accepted keywords
 		self._serviceRegistry = {}  # name of service -> queue
-		self._handlerRegistry = {}  # name -> queue
+		self._handlerRegistry = {}  # name -> array of queues, only top one used, perhaps add priorities
 		self._processorRegistry = {}  # handlername -> array of intermediate layers, should be interchangable
 
 		self._messageQueue = mp.Queue()  # read by servicebroker, written by services # docs claim its threadsafe
@@ -26,8 +26,6 @@ class ServiceBroker:
 		#  broker possibly shouldn't to wait for other core threads
 		# self.process.daemon = True  # snippet
 
-		# service types -> moved to constants:
-
 	@threaded(name='broker', daemon=True)  # TODO most likely for removal, need to save the thread reference
 	def start(self):
 		# threads for handling messages?
@@ -36,20 +34,17 @@ class ServiceBroker:
 		# self.process.start()  # runs _start in separate process
 
 		lg.info('starting')
+		self._loop()
+
+	def _loop(self):
 		while True:
 			# handle incoming messages
 			msg = self._messageQueue.get()  # type: CommandMessage
 			lg.debug(msg)
-			# TODO handling should be done in separate method
 			# maybe instead of service getter make serviceSend
 			# TODO check the type of message (isinstance) first
-			if msg.target in self._serviceRegistry:
-				self._serviceRegistry[msg.target].put(msg)
-			else:
-				if msg.target in self._handlerRegistry:
-					self.get_handler(msg.target).put(msg)  # FIXME
-				else:
-					lg.warning('no service nor handler found for name: \'%s\'', msg.target)
+			if isinstance(msg, CommandMessage):
+				self._handle_command(msg)
 
 	def stop(self):
 		# FIXME change to thread
@@ -67,21 +62,14 @@ class ServiceBroker:
 	def _user_output_handler(self, output: str):  # default handler
 		print(output)
 
-	def get_handler(self, name: str):
+	# TODO perhaps replace with use_handler or smth
+	def get_handler(self, name: str) -> mp.Queue:
 		if name in self._handlerRegistry:
 			return self._handlerRegistry[name][-1]
 		else:
 			lg.error('handler not found: %s', name)
 			# for the basic things it should never find empty key
 			# unless the name itself does not exist
-
-	# TODO should create method like process handle which would go through processors and pass to handler without getting
-	# snippet for exactly that \/
-	def pipeline_func(self, data, fns):
-		"""takes data and array of functions to pipeline together"""
-		# TODO: but that assumes all methods are static(?), whereas they require sending messaging all processors
-		from functools import reduce
-		return reduce(lambda a, x: x(a), fns, data)
 	
 	def add_handler(self, name: str, handler: mp.Queue):
 		if name not in self._handlerRegistry:
@@ -101,3 +89,32 @@ class ServiceBroker:
 			lg.warning('readding existing service: %s', name)
 		self._serviceRegistry[name] = service
 		lg.debug('added service: %s', name)
+
+	# TODO should create method like process handle which would go through processors and pass to handler without getting
+	# snippet for exactly that \/
+	def _pipeline_func(self, data, fns):
+		"""takes data and array of functions to pipeline together"""
+		# TODO: but that assumes all methods are static(?), whereas they require sending messaging all processors
+		from functools import reduce
+		return reduce(lambda a, x: x(a), fns, data)
+
+	def _handle_command(self, cm: CommandMessage):
+		# first check the command dict, if the entry is there, proceed
+		module = cm.args[0]
+		if module in self._commandsRegistry:
+			if cm.args[1] in self._commandsRegistry[module]:
+				self._serviceRegistry[module].put(cm)
+			else:
+				lg.warning('issued command not supported by module: ', cm.args[1])
+		elif module in self._processorRegistry and module in self._handlerRegistry:
+			pass
+			# TODO the processor will most likely work on message in its loop,
+			# TODO meaning that i'd need to keep track of how many processors completed its job
+			# TODO on message to know which one use next
+			# TODO is it possible that the module is in processors but not in handlers?
+			# may not be here but still be in handlers
+
+		elif module in self._handlerRegistry:
+			self.get_handler(module).put(cm)
+		else:
+			lg.warning('requested module or handler not found: ', module)

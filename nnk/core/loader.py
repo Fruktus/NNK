@@ -17,6 +17,7 @@ class Loader:
         self._moduleRegistry = {}  # dict of process name, its state and its message queue
         # TODO perhaps use registration message instead
         self._sb.add_handler('loader', self._messageQueue)  # should register with broker as handler
+        # TODO should also register as a service(?) and expose commands (like start/stop service etc)
 
     def get_queue(self) -> mp.Queue:
         return self._messageQueue
