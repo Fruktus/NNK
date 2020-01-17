@@ -33,9 +33,9 @@ def demo():
 
 
 class TelegramModule:
-    def __init__(self, token):
+    def __init__(self, token, request_kwargs=None):
         self.token = token
-        self.updater = Updater(token=self.token, use_context=True)
+        self.updater = Updater(token=self.token, request_kwargs=request_kwargs, use_context=True)
         self.dispatcher = self.updater.dispatcher
 
     def start_telegram(self):

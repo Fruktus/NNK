@@ -2,7 +2,7 @@ import logging
 import multiprocessing as mp
 from telegram import Bot
 
-from nnk.messages import CommandMessage, ConfigMessage
+from nnk.messages import CommandMessage, ConfigMessage, RegistrationMessage
 from nnk.constants import Services
 from .telegram import TelegramModule
 
@@ -59,11 +59,15 @@ class TelegramService:
             lg.warning('missing chat id, exiting')
             self.stop()
             return
+        self._request_kwargs = {'proxy_url': config['proxy']} if config['proxy'] else None
 
         # start telegram with token
         self._chat_id = config['chat_id']
-        self._module = TelegramModule(config['token'])
-        self._start_module()
+        self._module = TelegramModule(config['token'], request_kwargs=self._request_kwargs)
+        self._start_module()  # TMP?
+        self._brokerqueue.put(RegistrationMessage(source=self._id,
+                                                  handlers=[Services.USER_TEXT_OUTPUT,
+                                                            Services.USER_FILE_OUTPUT]))
 
     def _start_module(self):
         # FIXME tmp only, handlers should be declared elsewhere
@@ -87,12 +91,14 @@ class TelegramService:
 
     def _store_config(self):
         # send info to broker to pass through handler to configurator to add config
-        msg = ConfigMessage(target=Services.CONFIG, source=self._id, config={'token': '', 'chat_id': '@channelusername'})
+        msg = ConfigMessage(target=Services.CONFIG, source=self._id, config={'token': '',
+                                                                             'chat_id': '@channelusername',
+                                                                             'proxy': ''})
         self._brokerqueue.put(msg)
 
     # snippet, for later use in processing messages
     def _send_message(self, message: str):
-        self._module.send_message(self._chat_id, message)
+        self._module.send_message(self._chat_id, "".join(message))
 
     # draft, will be called from handlers
     def _send_message_from_telegram(self, args):

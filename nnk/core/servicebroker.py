@@ -43,7 +43,7 @@ class ServiceBroker:
 			msg = self._messageQueue.get()  # type: CommandMessage
 			lg.debug(msg)
 			# maybe instead of service getter make serviceSend
-			# TODO check the type of message (isinstance) first
+			# TODO add userinputhandler
 			if isinstance(msg, RegistrationMessage):
 				self._handle_registration(msg)
 			if isinstance(msg, ConfigMessage):
@@ -110,10 +110,12 @@ class ServiceBroker:
 		# TODO implement aliasing, like additional dict containing short names for modules
 		# TODO add to the registation message and process accordingly
 		# first check the command dict, if the entry is there, proceed
-		module = cm.args[0]
-		if module in self._commandsRegistry:
-			if cm.args[1] in self._commandsRegistry[module] or '' in self._commandsRegistry[module]:
-				self._serviceRegistry[module].put(cm)
+		module = cm.target
+		command = cm.args[0]
+		# TODO the target is usertextinput most of the time, need service to parse out the name of target
+		if command in self._commandsRegistry:
+			if cm.args[1] in self._commandsRegistry[command] or '' in self._commandsRegistry[command]:
+				self._serviceRegistry[command].put(cm)
 			else:
 				lg.warning('issued command not supported by module: ', cm.args[1])
 		elif module in self._processorRegistry and module in self._handlerRegistry:
@@ -126,8 +128,9 @@ class ServiceBroker:
 
 		elif module in self._handlerRegistry:
 			self.get_handler(module).put(cm)
+		# temporarily disabled, no service that could handle input right now
 		else:
-			lg.warning('requested module or handler not found: ', module)
+			lg.warning('requested module or handler not found: {0}'.format(module))
 
 	def _handle_registration(self, rm: RegistrationMessage):
 		if rm.source not in self._serviceRegistry:

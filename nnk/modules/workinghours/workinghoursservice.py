@@ -40,17 +40,17 @@ class WorkinghoursService:
     def add_hours(self, hours):
         # parse the hours, if they are as 8h then 8, if 8:00-17:00 then 9
         today = datetime.date.today()
-        self._work_data[today] = hours
+        self._work_data[str(today)] = hours
         total = 0
         for k, v in self._work_data.items():
-            date = datetime.datetime.strptime(k, '%Y-%m-%d')
+            date = datetime.date.fromisoformat(k)
             if date.month == today.month:
-                total += self._work_data[date]
+                total += int(self._work_data[str(date)])
         with open(self._default_path, 'wb') as data_dict_file:  # TMP remove when stopping is properly implemented
             pickle.dump(self._work_data, data_dict_file)        # TMP ...
         self._brokerqueue.put(CommandMessage(target=Services.USER_TEXT_OUTPUT,
-                                             args="added {0} hours.\nThis month you worked for {1} \
-                                             hours this month".format(hours, total),
+                                             args=["Added {0} hours.\nThis month you worked for {1} \
+                                             hours".format(hours, total)],
                                              source=self._id))
 
     def get_hours(self):
