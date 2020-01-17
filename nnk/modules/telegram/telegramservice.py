@@ -16,6 +16,7 @@ class TelegramService:
         self._id = 'telegram'
 
     def start(self):
+
         # if needed, spawn child threads
         cfg = ConfigMessage(target=Services.CONFIG, source=self._id)
         self._brokerqueue.put(cfg)
@@ -74,12 +75,13 @@ class TelegramService:
 
         # used for forwarding user input to broker
         # TODO defined here temporarily, move someplace more fitting
-        def message_handler(update, context):
+        def cmd(update, context):
             self._send_message_from_telegram(update.message.text.split())
 
         echo_handler = MessageHandler(Filters.text, echo)
-        self._module.add_handler(echo_handler)
-        self._module.add_handler(message_handler())
+        message_handler = MessageHandler(Filters.text, cmd)
+        # self._module.add_handler(echo_handler)
+        self._module.add_handler(message_handler)
         self._module.start_telegram()
         # updater.idle() start polling is nonblocking so this might come in handy
 

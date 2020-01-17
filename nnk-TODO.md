@@ -33,3 +33,10 @@ which would wait blocked for other process to write to pipe, this would be used 
 job which would check the nnk's state and restart whole server if necessary
 TODO: related to above, create constants for modules status like normal, warning, exited etc
 (active-okay, inactive-normal exit, dead-exception caused exit, ...?)
+
+
+# howto check and change cwd
+import os
+cwd = os.getcwd()
+print('telegram cwd: ', cwd)
+os.chdir(path)

@@ -4,8 +4,9 @@ import multiprocessing as mp
 # from . import configurator
 # from nnk.core.configurator import Configurator
 # from nnk.core.loader import Loader
-from nnk.messages import CommandMessage
+from nnk.messages import CommandMessage, RegistrationMessage, ConfigMessage
 from nnk.utilities import threaded
+from nnk.constants import Services
 
 lg = logging.getLogger('core.broker')
 
@@ -43,6 +44,13 @@ class ServiceBroker:
 			lg.debug(msg)
 			# maybe instead of service getter make serviceSend
 			# TODO check the type of message (isinstance) first
+			if isinstance(msg, RegistrationMessage):
+				self._handle_registration(msg)
+			if isinstance(msg, ConfigMessage):
+				if msg.target != 'config':
+					self._serviceRegistry[msg.target].put(msg)
+				else:
+					self._handlerRegistry[Services.CONFIG][0].put(msg)  # very tmp, add proper handler
 			if isinstance(msg, CommandMessage):
 				self._handle_command(msg)
 
@@ -86,7 +94,7 @@ class ServiceBroker:
 	
 	def add_service(self, name: str, service: mp.Queue):
 		if name in self._serviceRegistry:
-			lg.warning('readding existing service: %s', name)
+			lg.warning('re-adding existing service: %s', name)
 		self._serviceRegistry[name] = service
 		lg.debug('added service: %s', name)
 
@@ -99,10 +107,12 @@ class ServiceBroker:
 		return reduce(lambda a, x: x(a), fns, data)
 
 	def _handle_command(self, cm: CommandMessage):
+		# TODO implement aliasing, like additional dict containing short names for modules
+		# TODO add to the registation message and process accordingly
 		# first check the command dict, if the entry is there, proceed
 		module = cm.args[0]
 		if module in self._commandsRegistry:
-			if cm.args[1] in self._commandsRegistry[module]:
+			if cm.args[1] in self._commandsRegistry[module] or '' in self._commandsRegistry[module]:
 				self._serviceRegistry[module].put(cm)
 			else:
 				lg.warning('issued command not supported by module: ', cm.args[1])
@@ -118,3 +128,22 @@ class ServiceBroker:
 			self.get_handler(module).put(cm)
 		else:
 			lg.warning('requested module or handler not found: ', module)
+
+	def _handle_registration(self, rm: RegistrationMessage):
+		if rm.source not in self._serviceRegistry:
+			lg.warning('tried to register commands to nonexistent service: ', rm.source)
+			return
+
+		queue = self._serviceRegistry[rm.source]
+		if rm.aliases:
+			pass  # TODO
+		if rm.commands:
+			if rm.source in self._commandsRegistry:
+				self._commandsRegistry[rm.source].append(rm.commands)
+			else:
+				self._commandsRegistry[rm.source] = rm.commands
+		if rm.handlers:
+			for h in rm.handlers:
+				self.add_handler(h, queue)
+		if rm.processors:
+			pass  # TODO

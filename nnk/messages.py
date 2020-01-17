@@ -25,12 +25,17 @@ class ConfigMessage:
 
 
 class RegistrationMessage:
-    """used by processes to register commands, processors and handlers. Target is always ServiceBroker"""
-    def __init__(self, source: str, commands: [str] = None, handlers: [Services] = None, processors: [] = None):
+    """used by processes to register commands, processors and handlers. Target is always ServiceBroker.
+    Requires the service to be added beforehand by the loader (because of the multiprocessing's queues limitation)"""
+    def __init__(self, source: str, aliases: [str] = None, commands: [str] = None, handlers: [Services] = None,
+                 processors: [] = None):
         self.source = source  # the id of service which provides given functionalities
+        self.aliases = aliases  # the array of strings under which the module should be recognized
         self.commands = commands  # a string array of keywords recognized as commands
         self.handlers = handlers  # a list of handlers [Service constants] that the service supports
         self.processors = processors  # TODO same as above, right now placeholder only
 
     def __str__(self):
-        return '<ConfigMessage> source:' + str(self.source) + ' target:' + str(self.target) + ' config:' + str(self.config)
+        return '<RegistrationMessage> source: ' + str(self.source) + ' aliases: ' + str(self.aliases) +\
+               ' commands: ' + str(self.commands) + ' handlers: ' + str(self.handlers) + ' processors: ' +\
+               str(self.processors)

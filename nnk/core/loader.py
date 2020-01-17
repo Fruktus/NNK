@@ -64,6 +64,7 @@ class Loader:
         # TODO keep track of all modules that were present in folder, how many were loaded etc.
         # TODO it is required for discovering dynamically added modules
         loaded = 0
+        import re # tmp
         for m in modules:
             if m not in self._moduleRegistry:
                 module = importlib.import_module('.' + m + 'service', package='nnk.modules.' + m)
@@ -83,7 +84,7 @@ class Loader:
         if loaded == 1:
             lg.info('loaded 1 service')
         else:
-            lg.info('loaded ', loaded, ' services')
+            lg.info('loaded {0} services'.format(loaded))
     # should have looping keepalive method for loaded services, there is a snippet for that in nnk.md
 
         # TODO add helper method get_state which would list all loaded services or specific ones
