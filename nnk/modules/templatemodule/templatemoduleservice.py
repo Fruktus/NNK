@@ -21,3 +21,5 @@ class TemplatemoduleService:
     def stop(self):
         # so that the module can save its config and exit gracefully
         raise NotImplementedError
+
+

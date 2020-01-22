@@ -40,3 +40,8 @@ import os
 cwd = os.getcwd()
 print('telegram cwd: ', cwd)
 os.chdir(path)
+
+
+# Howto ABC initialize superclass
+# inside child class init:
+super().__init__()

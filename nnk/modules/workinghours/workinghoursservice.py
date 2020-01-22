@@ -45,7 +45,7 @@ class WorkinghoursService:
         for k, v in self._work_data.items():
             date = datetime.date.fromisoformat(k)
             if date.month == today.month:
-                total += int(self._work_data[str(date)])
+                total += float(self._work_data[str(date)])
         with open(self._default_path, 'wb') as data_dict_file:  # TMP remove when stopping is properly implemented
             pickle.dump(self._work_data, data_dict_file)        # TMP ...
         self._brokerqueue.put(CommandMessage(target=Services.USER_TEXT_OUTPUT,
