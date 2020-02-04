@@ -1,19 +1,24 @@
 import logging
 import multiprocessing as mp
-from telegram import Bot
+
+from telegram import ReplyKeyboardMarkup, KeyboardButton
+from telegram.ext import CommandHandler
 
 from nnk.messages import CommandMessage, ConfigMessage, RegistrationMessage
 from nnk.constants import Services
+from nnk.modules.abstractmodule import AbstractModule
+
 from .telegram import TelegramModule
 
 lg = logging.getLogger('modules.telegram')
 
 
-class TelegramService:
+class TelegramService(AbstractModule):
     def __init__(self, brokerqueue: mp.Queue, ownqueue: mp.Queue):
-        self._brokerqueue = brokerqueue
-        self._ownqueue = ownqueue
-        self._id = 'telegram'
+        super().__init__(brokerqueue, ownqueue, 'telegram')
+        # self._brokerqueue = brokerqueue
+        # self._ownqueue = ownqueue
+        # self._id = 'telegram'
 
     def start(self):
 
@@ -59,7 +64,7 @@ class TelegramService:
             lg.warning('missing chat id, exiting')
             self.stop()
             return
-        self._request_kwargs = {'proxy_url': config['proxy']} if config['proxy'] else None
+        self._request_kwargs = {'proxy_url': config['proxy']} if 'proxy' in config else None
 
         # start telegram with token
         self._chat_id = config['chat_id']
@@ -82,9 +87,17 @@ class TelegramService:
         def cmd(update, context):
             self._send_message_from_telegram(update.message.text.split())
 
+        def confirm(update, context):
+            print('tryme called')
+            keyboard = [KeyboardButton('Yes', callback_data=True),
+                        KeyboardButton('No', callback_data=False)]
+            reply_markup = ReplyKeyboardMarkup(keyboard)
+            context.bot.send_message(chat_id=update.message.chat_id, text='Please choose:', reply_markup=reply_markup)
+
         echo_handler = MessageHandler(Filters.text, echo)
         message_handler = MessageHandler(Filters.text, cmd)
         # self._module.add_handler(echo_handler)
+        self._module.add_handler(CommandHandler('tryme', confirm))
         self._module.add_handler(message_handler)
         self._module.start_telegram()
         # updater.idle() start polling is nonblocking so this might come in handy
@@ -104,3 +117,8 @@ class TelegramService:
     def _send_message_from_telegram(self, args):
         msg = CommandMessage(target=Services.USER_TEXT_INPUT, source=self._id, args=args)
         self._brokerqueue.put(msg)
+
+
+# class _Auth:
+    # temporary solution for multiple users
+    # should be refactored for proper auth service later on

@@ -143,6 +143,7 @@ class ServiceBroker:
 		if rm.commands:
 			if rm.source in self._commandsRegistry:
 				self._commandsRegistry[rm.source].append(rm.commands)
+			# TODO ^ possibly may not concat the lists, but add one to the other
 			else:
 				self._commandsRegistry[rm.source] = rm.commands
 		if rm.handlers:

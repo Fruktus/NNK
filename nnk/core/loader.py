@@ -60,6 +60,8 @@ class Loader:
         modules = [f for f in listdir(join(abspath(dirname(__file__)), '..', 'modules'))
                    if isdir(join(abspath(dirname(__file__)), '..', 'modules', f))]
         modules.remove('templatemodule')  # FIXME temporary fix. templatemodule will be moved elsewhere later on
+        if '__pycache__' in modules:
+            modules.remove('__pycache__')  # FIXME temporary, figure out better way to filter the folder
 
         # TODO keep track of all modules that were present in folder, how many were loaded etc.
         # TODO it is required for discovering dynamically added modules

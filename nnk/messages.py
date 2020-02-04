@@ -1,7 +1,13 @@
+from abc import ABC
+
 from nnk.constants import Services
 
 
-class CommandMessage:
+class AbstractMessage(ABC):
+    pass
+
+
+class CommandMessage(AbstractMessage):
     def __init__(self, target: str, source: str, args: []):
         self.target = target  # service or handler (checked in that order)
         self.source = source
@@ -12,7 +18,7 @@ class CommandMessage:
         return '<CommandMessage> source:' + str(self.source) + ' target:' + str(self.target) + ' args:' + str(self.args)
 
 
-class ConfigMessage:
+class ConfigMessage(AbstractMessage):
     def __init__(self, target: str, source: str, config: dict = None):
         self.target = target  # the id of the service, same as in config
         # technically, it only needs one since there is only one configurator and broker can check the type
@@ -24,7 +30,7 @@ class ConfigMessage:
         return '<ConfigMessage> source:' + str(self.source) + ' target:' + str(self.target) + ' config:' + str(self.config)
 
 
-class RegistrationMessage:
+class RegistrationMessage(AbstractMessage):
     """used by processes to register commands, processors and handlers. Target is always ServiceBroker.
     Requires the service to be added beforehand by the loader (because of the multiprocessing's queues limitation)"""
     def __init__(self, source: str, aliases: [str] = None, commands: [str] = None, handlers: [Services] = None,
