@@ -1,7 +1,7 @@
 import logging
 import multiprocessing as mp
 
-from telegram import ReplyKeyboardMarkup, KeyboardButton
+from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import CommandHandler
 
 from nnk.messages import CommandMessage, ConfigMessage, RegistrationMessage
@@ -85,13 +85,14 @@ class TelegramService(AbstractModule):
         # used for forwarding user input to broker
         # TODO defined here temporarily, move someplace more fitting
         def cmd(update, context):
+            # if self._awaiting_reply:
+            #   do smth with the reply
+            #   continue
             self._send_message_from_telegram(update.message.text.split())
 
         def confirm(update, context):
-            print('tryme called')
-            keyboard = [KeyboardButton('Yes', callback_data=True),
-                        KeyboardButton('No', callback_data=False)]
-            reply_markup = ReplyKeyboardMarkup(keyboard)
+            keyboard = [["Yes"], ["No"]]
+            reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True)
             context.bot.send_message(chat_id=update.message.chat_id, text='Please choose:', reply_markup=reply_markup)
 
         echo_handler = MessageHandler(Filters.text, echo)

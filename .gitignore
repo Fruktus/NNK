@@ -6,4 +6,5 @@ venv/
 **/*cache*
 
 # user config
+**/*.dat
 **/*.ini
